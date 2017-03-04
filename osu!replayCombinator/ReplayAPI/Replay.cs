@@ -43,8 +43,6 @@ namespace ReplayAPI
         private CultureInfo culture = new CultureInfo("en-US", false);
         private bool headerLoaded;
 
-        //private ReplayAnalyzer replayAnalyzer;
-
         public bool fullLoaded { get; private set; }
 
         public Replay(string replayFile, bool fullLoad, bool calculateSpeed)
@@ -378,10 +376,47 @@ namespace ReplayAPI
             return (!this.Mods.HasFlag(Mods.NoFail)) || LifeFrames.All((x) => x.Percentage > 0);
         }
 
+        public enum Rankings
+        {
+            XH,
+            SH,
+            X,
+            S,
+            A,
+            B,
+            C,
+            D,
+            F,
+            N
+        }
+
+        public float GetAccuracy()
+        {
+            float totalhits = Count50 + Count100 + Count300 + CountMiss;
+            if (totalhits <= 0) return 0.0f;
+            return (Count50 * 50 + Count100 * 100 + Count300 * 300) / (totalhits * 300);
+        }
+
+        public Rankings GetRanking()
+        {
+            if (!IsPass())
+                return Rankings.F;
+            float totalhits = Count50 + Count100 + Count300 + CountMiss;
+            bool hiddenStd = Mods.HasFlag(Mods.Hidden | Mods.FlashLight);
+            float acc = GetAccuracy();
+            float percent50;
+
+            percent50 = Count50 / totalhits;
+            if (acc == 1f && IsPerfect) return !hiddenStd ? Rankings.X : Rankings.XH;
+            if (acc > 0.9 && percent50 <= 0.01 && IsPerfect) return !hiddenStd ? Rankings.S : Rankings.SH;
+            if (acc > 0.8 && IsPerfect || acc > 0.9) return Rankings.A;
+            if (acc > 0.7 && IsPerfect || acc > 0.8) return Rankings.B;
+            return GetAccuracy() > 0.6 ? Rankings.C : Rankings.D;
+        }
+
         public string Rank()
         {
-            //TODO fix
-            return "A";
+            return GetRanking().ToString();
         }
     }
 }

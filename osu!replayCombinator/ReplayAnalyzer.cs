@@ -122,7 +122,7 @@ namespace osu_replayCombinator
                     ReplayFrame frame = replay.ReplayFrames[j];
                     lastKey = j > 0 ? replay.ReplayFrames[j - 1].Keys : Keys.None;
 
-                    Keys pressedKey = getKey(lastKey, frame.Keys);
+                    Keys pressedKey = Utils.getKey(lastKey, frame.Keys);
 
                     if(breakIndex < breaks.Count && frame.Time > breaks[breakIndex].EndTime)
                     {
@@ -157,7 +157,7 @@ namespace osu_replayCombinator
                         {
                             if (Utils.dist(note.Location.X, note.Location.Y, frame.X, frame.Y) > 150)
                             {
-                                extraHits.Add(new ClickFrame(frame, getKey(lastKey, frame.Keys)));
+                                extraHits.Add(new ClickFrame(frame, Utils.getKey(lastKey, frame.Keys)));
                             }
                             else
                             {
@@ -187,20 +187,6 @@ namespace osu_replayCombinator
                     effortlessMisses.Add(note);
                 }
             }
-        }
-
-        private Keys getKey(Keys last, Keys current)
-        {
-            Keys res = Keys.None;
-            if(!last.HasFlag(Keys.M1) && current.HasFlag(Keys.M1) && !current.HasFlag(Keys.K1))
-                res |= Keys.M1;
-            if(!last.HasFlag(Keys.M2) && current.HasFlag(Keys.M2) && !current.HasFlag(Keys.K2))
-                res |= Keys.M2;
-            if(!last.HasFlag(Keys.K1) && current.HasFlag(Keys.K1))
-                res |= Keys.K1 | Keys.M1;
-            if(!last.HasFlag(Keys.K2) && current.HasFlag(Keys.K2))
-                res |= Keys.K2 | Keys.M2;
-            return res;
         }
 
         private List<double> calcPressIntervals()

@@ -76,6 +76,20 @@ namespace osu_replayCombinator
             return result;
         }
 
+        public static Keys getKey(Keys last, Keys current)
+        {
+            Keys res = Keys.None;
+            if (!last.HasFlag(Keys.M1) && current.HasFlag(Keys.M1) && !current.HasFlag(Keys.K1))
+                res |= Keys.M1;
+            if (!last.HasFlag(Keys.M2) && current.HasFlag(Keys.M2) && !current.HasFlag(Keys.K2))
+                res |= Keys.M2;
+            if (!last.HasFlag(Keys.K1) && current.HasFlag(Keys.K1))
+                res |= Keys.K1 | Keys.M1;
+            if (!last.HasFlag(Keys.K2) && current.HasFlag(Keys.K2))
+                res |= Keys.K2 | Keys.M2;
+            return res;
+        }
+
         /// <summary>
         /// Note: specified list would be mutated in the process.
         /// </summary>

@@ -97,10 +97,64 @@ namespace osu_replayCombinator
             }
         }
 
+        private ReplayFrame insertReplayFrame(int j, int time)
+        {
+            ReplayFrame r = (ReplayFrame)this.processedReplays[0].replay.ReplayFrames[j].Clone();
+
+            this.processedReplays[0].replay.ReplayFrames.Insert(j, r);
+
+            //r.Time = (this.processedReplays[0].replay.ReplayFrames[j - 1].Time + r.Time) / 2;
+            r.Time = time;
+
+            r.TimeDiff = r.Time - this.processedReplays[0].replay.ReplayFrames[j - 1].Time;
+
+            this.processedReplays[0].replay.ReplayFrames[j + 1].TimeDiff = this.processedReplays[0].replay.ReplayFrames[j + 1].Time - r.Time;
+
+            return r;
+        }
+
+        public void fixMisses()
+        {
+            int j = 0;
+            foreach (var miss in this.processedReplays[0].misses)
+            {
+                var time = miss.note.StartTime;
+
+                for(;this.processedReplays[0].replay.ReplayFrames[j].Time < time;++j)
+                {
+                }
+
+                Keys current = this.processedReplays[0].replay.ReplayFrames[j].Keys;
+                Keys last = this.processedReplays[0].replay.ReplayFrames[j-1].Keys;
+
+                double dist = Utils.dist(this.processedReplays[0].replay.ReplayFrames[j].X, this.processedReplays[0].replay.ReplayFrames[j].Y, miss.note.Location.X, miss.note.Location.Y);
+
+                if (dist - miss.note.Radius > -2)
+                {
+                    var newFrame = insertReplayFrame(j, (int)time);
+
+                    newFrame.X = miss.note.Location.X;
+                    newFrame.Y = miss.note.Location.Y;
+                }
+
+                Keys k = Utils.getKey(last, current);
+
+                if (k.HasFlag(Keys.K1))
+                {
+                    this.processedReplays[0].replay.ReplayFrames[j].Keys = Keys.K2;
+                }
+                else
+                {
+                    this.processedReplays[0].replay.ReplayFrames[j].Keys = Keys.K1;
+                }
+            }
+        }
+
         public void copyReplay()
         {
+            fixMisses();
+            processedReplays[0].replay.Mods |= Mods.Hidden;
             this.resultingReplay = new Replay(processedReplays[0].replay);
-            //resultingReplay.CountMiss = 1;
         }
 
         private void finalizeReplay()
